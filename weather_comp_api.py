@@ -5,8 +5,8 @@ import pandas as pd
 import datetime as dt
 
 # Weather company data API credentials
-username="8da5e845-ba8b-407c-b9dd-4a96e54c3adc"
-password="nJif88mzcF"
+username="unique'
+password='unique'
  
 cities = [('Austin', 30.266926, -97.750519), 
           ('Atlanta', 33.753746, -84.386330),
