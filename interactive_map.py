@@ -6,8 +6,8 @@ import numpy as np
 city = ['Santa Monica', 34.024212, -118.496475] 
 lat = city[1]
 lon = city[2]
-austin_coords = [lat, lon]
-my_map = folium.Map(location = austin_coords, zoom_start = 13)
+LA_coords = [lat, lon]
+my_map = folium.Map(location = LA_coords, zoom_start = 13)
 
 
 df = pd.read_csv('LA_0.csv', index_col=0)
@@ -32,7 +32,7 @@ for i in range(0,len(df)):
 my_map
 
 
-my_map.save('Washington, DC Bird Scooters Interactive.html')
+my_map.save('LA Bird Scooters Interactive.html')
 
 
 
