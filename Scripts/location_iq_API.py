@@ -11,7 +11,7 @@ df = pd.read_csv('data.csv, index_col=0')
 
 #locationiq_reverse geocode zipcode
 #free token
-private_token = "cba9365ea814d2" 
+private_token = "API KEY" 
 
 zip_code = []
 ### 'postcode' not found in address so append sometimes doesn't work
