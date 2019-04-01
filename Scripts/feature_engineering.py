@@ -33,11 +33,15 @@ for city in cities:
     city_secondary = city_rds[city_rds.highway == 'secondary']
     city_resid = city_rds[city_rds.highway == 'residential']
     
-
+    # create df column with closest road type      
     city_gdf['road_type'] = city_gdf['geometry'].apply(find_closest_road, roads = city_rds)
+    # create df column wtih distance to closest highway      
     city_gdf['closest_highway'] = city_gdf['geometry'].apply(distance_to_roadway, roadway = city_highways)
+    # create df column with distance to closest primary road      
     city_gdf['closest_primary'] = city_gdf['geometry'].apply(distance_to_roadway, roadway = city_primary)
+    # create df column with distance to closest secondary road  
     city_gdf['closest_secondary'] = city_gdf['geometry'].apply(distance_to_roadway, roadway = city_secondary)
+    # create df column with distance to closest residential road      
     city_gdf['closest_residential'] = city_gdf['geometry'].apply(distance_to_roadway, roadway = city_resid)
 
 
