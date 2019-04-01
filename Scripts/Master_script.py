@@ -360,5 +360,18 @@ df['streets_per_node_avg'] = streets_per_node_avg
 df['circuity_avg'] = circuity_avg
 df['street_length_avg'] = street_length_avg  
 
+df['nest_id'] = df['nest_id'].fillna('Empty')
+
+# create  a nest dummy variable ( 1 if Nest_ID,  0 if no Nest_ID)
+nest_dummy = []
+
+for i in range(len(df)):
+    if df['nest_id'][i] == 'Empty':
+        nest_dummy.append(0)
+    else:
+        nest_dummy.append(1)
+        
+df['nest_dummy'] = nest_dummy
+
 #output df to csv
 df.to_csv('output_data.csv')
