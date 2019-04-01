@@ -12,4 +12,4 @@ df = df.drop(['precip', 'code', 'corner_dist', 'signal_dist', 'captive'], axis=1
 
 df['wspd'] = df['wspd'].fillna(0)
 
-df = df.to_csv('final_merge.csv')
+df.to_csv('final_merge.csv')
