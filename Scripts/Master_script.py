@@ -6,6 +6,7 @@ import datetime as dt
 from uszipcode import SearchEngine
 import time
 import osmnx as ox
+from shapely.geometry import Point
 
 #cities and corresponding latitude/longitude coordinates
 cities = [('Austin', 30.26715, -97.74306), 
@@ -372,6 +373,10 @@ for i in range(len(df)):
         nest_dummy.append(1)
         
 df['nest_dummy'] = nest_dummy
+
+#create geometry Point using Shapely
+geometry = [Point(xy) for xy in zip(df.longitude, df.latitude)]
+df['geometry'] = geometry
 
 #output df to csv
 df.to_csv('output_data.csv')
