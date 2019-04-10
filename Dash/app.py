@@ -6,27 +6,15 @@ import datetime as dt
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-from sklearn.externals import joblib
 import pandas as pd
 import dash_table_experiments as dash_table
 import copy 
-import plotly
-import plotly.plotly as py
-import plotly.offline as offline
 import plotly.graph_objs as go
 from haversine import haversine
 from geopy.geocoders import GoogleV3
-import geopandas as gpd
-import itertools
-from shapely.geometry import Point, MultiPoint
 import uuid
-import time
-import osmnx as ox
-from shapely.ops import nearest_points
-from shapely import wkt
+import operator
 
-
-#df = pd.read_csv('final_merge.csv', index_col=0)
 mapbox_access_token = 'pk.eyJ1IjoicHJqMDciLCJhIjoiY2p1N2l6ZnlnMHR1YzRlazlsZXJhbm1zZCJ9.G770typ9b-pygTLkxRoa7Q'
 
 
@@ -45,7 +33,7 @@ def bird_api_ping(lat, lon):
             "Device-id": "123E4567-E89B-12D3-A456-426655440060",
             "App-Version": "3.0.5",
             "Location": json.dumps({"latitude":lat,"longitude":lon})}
-    results = requests.get("https://api.bird.co/bird/nearby?latitude="+str(lat)+"&longitude="+str(lon)+"&radius=10000", headers = headers2)
+    results = requests.get("https://api.bird.co/bird/nearby?latitude="+str(lat)+"&longitude="+str(lon)+"&radius=100000", headers = headers2)
     bird_parsed = json.loads(results.text)
     keys = bird_parsed.keys()
     dict_you_want={'my_items':bird_parsed['birds']for key in keys}
@@ -60,21 +48,67 @@ def bird_api_ping(lat, lon):
     
     return df
 
-def find_closest_nest(lat, lon, df):
-    # calculate the closest nest proximity for a non nest scooter in meters at a snapshot in time
+def find_closest_nests(lat, lon, df, scooters):
+    # calculate the closest nest proximity for a non nest scooter in meters at a snapshot in time      
     location = (lat, lon)
-    all_dist = []
-    for i in range(len(df)):
-        all_lat = df['latitude'][i]
-        all_lon = df['longitude'][i]
-        all_geo = (all_lat, all_lon)
 
-        all_dist.append(haversine(location, all_geo))
+    
+    if scooters == 'id':        
+        all_dist = []
+        for i in range(len(df)):
+            all_lat = df['latitude'][i]
+            all_lon = df['longitude'][i]
+            all_geo = (all_lat, all_lon)
+            if df['battery_level'][i] <= 90:
+                pass
+            else:
+                dist = haversine(location, all_geo)
+                dist = dist * 1000
+                bat = df['battery_level'][i]
+                nest = [dist, bat]
+                all_dist.append(nest)
                 
-    all_dist = [i * 1000 for i in all_dist]
+        all_dist.sort(key=operator.itemgetter(0))
+        top_five = all_dist[0:5]
     
+        return top_five
+
+    if scooters == 'nest_id':
+        all_dist = []       
+        for i in range(len(df)):
+            all_lat = df['latitude'][i]
+            all_lon = df['longitude'][i]
+            all_geo = (all_lat, all_lon)
+            if df['battery_level'][i] > 90:
+                pass
+            else:
+                dist = haversine(location, all_geo)
+                dist = dist * 1000
+                bat = df['battery_level'][i]
+                nest = [dist, bat]
+                all_dist.append(nest)
+                
+        all_dist.sort(key=operator.itemgetter(0))
+        top_five = all_dist[0:5]
     
-    return all_dist
+        return top_five
+
+    if scooters == 'all':
+        all_dist = []
+        for i in range(len(df)):
+            all_lat = df['latitude'][i]
+            all_lon = df['longitude'][i]
+            all_geo = (all_lat, all_lon)
+            dist = haversine(location, all_geo)
+            dist = dist * 1000
+            bat = df['battery_level'][i]
+            nest = [dist, bat]
+            all_dist.append(nest)
+                
+        all_dist.sort(key=operator.itemgetter(0))
+        top_five = all_dist[0:5]
+    
+        return top_five
 
 # Mapping layout
 layout = dict(
@@ -112,34 +146,73 @@ def map_estimate(address_data, scooters, lat, lon):
 
     if scooters == 'id':
         address_data = address_data[address_data['battery_level'] > 90]
-    else:
-        address_data = address_data[address_data['battery_level'] <= 90]
-        
-    return {
-        "data": [
-                {
-                    "type": "scattermapbox",
-                    "lat": list(address_data['latitude']),
-                    "lon": list(address_data['longitude']),
-                    "text": list(address_data['battery_level']),
-                    "mode": "markers",
-                    "name": "City",
-                    "marker": {
-                        "size": 4,
-                        "opacity": 1.00,
-                        "color": 'red'
-                    }
-                }
-            ],
-        "layout": address_layout
-    }
-        
 
+        return {
+                "data": [
+                        {
+                                "type": "scattermapbox",
+                                "lat": list(address_data['latitude']),
+                                "lon": list(address_data['longitude']),
+                                "text": list(address_data['battery_level']),
+                                "mode": "markers",
+                                "name": "City",
+                                "marker": {
+                                        "size": 4,
+                                        "opacity": 1.00,
+                                        "color": 'green'
+                                        }
+                                }
+                                ],
+            "layout": address_layout
+            }
+        
+    if scooters == 'nest_id':
+       address_data = address_data[address_data['battery_level'] <= 90]
+
+       return {
+               "data": [
+                       {
+                               "type": "scattermapbox",
+                               "lat": list(address_data['latitude']),
+                               "lon": list(address_data['longitude']),
+                               "text": list(address_data['battery_level']),
+                               "mode": "markers",
+                               "name": "City",
+                               "marker": {
+                                       "size": 4,
+                                       "opacity": 1.00,
+                                       "color": 'red'
+                                       }
+                               }
+                               ],
+            "layout": address_layout
+            }
+
+    else:
+       return {
+               "data": [
+                       {
+                               "type": "scattermapbox",
+                               "lat": list(address_data['latitude']),
+                               "lon": list(address_data['longitude']),
+                               "text": list(address_data['battery_level']),
+                               "mode": "markers",
+                               "name": "City",
+                               "marker": {
+                                       "size": 4,
+                                       "opacity": 1.00,
+                                       "color": 'yellow'
+                                       }
+                               }
+                               ],
+            "layout": address_layout
+            }    
+                
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash()
 
-
+server = app.server
 
 """data = [go.Scattermapbox(lat=df['latitude'], lon=df['longitude'], mode='markers', marker=go.scattermapbox.Marker(
         size=9
@@ -158,7 +231,7 @@ layout = go.Layout(autosize=True, height=800, width =600,
 app.css.append_css({'external_url': 'https://cdn.rawgit.com/plotly/dash-app-stylesheets/2d266c578d2a6e8850ebce48fdb52759b2aef506/stylesheet-oil-and-gas.css'})  # noqa: E501
 app.layout = html.Div(
     [
-        html.H1("Check for the Scooters and Nests nearby", style={'textAlign': 'center'}),
+        html.H1("Real-time Electric Scooters and Nests", style={'textAlign': 'center'}),
     
         html.Div(
             [
@@ -166,6 +239,7 @@ app.layout = html.Div(
                     [
                         dcc.Dropdown(
                             options = [
+                                {'label': 'All Scooters', 'value': 'all'},   
                                 {'label': 'Nest Scooters', 'value': 'nest_id'},
                                 {'label': 'Non-nest Scooters', 'value': 'id'}
                             ],
@@ -211,8 +285,7 @@ app.layout = html.Div(
             ], style={'textAlign': 'center', 'margin-top': '25', 'margin-left': '30', 'fontSize': 18}, 
             className = "five columns"),
 
-        html.Div(id='intermediate_value', style={'display': 'none'})                 
-
+        html.Div(id='intermediate_value', style={'display': 'none'})
     ]
 )
 
@@ -221,7 +294,7 @@ app.layout = html.Div(
     [dash.dependencies.Input('button', 'n_clicks')],
     [dash.dependencies.State('input-box', 'value')])
 
-def find_birds(n_clicks, value):
+def find_bird_nests(n_clicks, value):
 	
     ## A. Get the lat long of address input  by user
     address = str(value)
@@ -233,6 +306,7 @@ def find_birds(n_clicks, value):
     if len(df) > 0:
         df['my_lat'] = lat
         df['my_lon'] = lon
+
         return df.to_json(orient='split')    
     else:
         return df.to_json(orient='split')
@@ -246,9 +320,10 @@ def find_birds(n_clicks, value):
 def get_proximity(model_df, scooter):
 
     model_df = pd.read_json(model_df, orient='split')
+    
     if len(model_df) < 1:
         return("No Scooters in this Area or it's after 9pm local time!") 
-
+        
     else:
         lat = model_df['my_lat'][0]
         lon = model_df['my_lon'][0]
@@ -268,10 +343,13 @@ def get_proximity(model_df, scooter):
 
 
         if scooter == 'id':
-            return('''The nearest scooter is {0} meters away.'''.format(np.round(minimum, 1)))
+            return('''The nearest scooter is {0} meters away.'''.format(np.round(minimum, 0)))
+            
+        if scooter == 'all':
+            return('''The nearest all scooter is {0} meters away.'''.format(np.round(minimum, 0)))            
         
         else:
-            return('''The nearest Nest is {0} meters away.'''.format(np.round(minimum, 1)))
+            return('''The nearest Nest is {0} meters away.'''.format(np.round(minimum, 0)))
 
 
 @app.callback(
@@ -288,57 +366,57 @@ def create_suggestions(model_df):
     
     if len(model_df) >= 1:
         out_of_range = html.Div([
-                            html.P("Recommendations for Nest Locations", style = {'fontSize': 32})
+                            html.P("These are the five closest scooters from your specified location", 
+                                   style = {'fontSize': 28})
                             ])
         return out_of_range
-    
-    lat = model_df['my_lat'][0]
-    lon = model_df['my_lon'][0]
-    nest_scooters = find_closest_nest(lat, lon, model_df)
 
-    if len(nest_scooters) != 0:
-        nest_statement = html.Div([
-    						html.P("The following nests are within your area:", 
-    							style = {'fontSize': 32}),
-    						html.P("(Closest ranked first)",
-    							style = {'fontSize': 24})
-    						])
-
-    else:
-        nest_statement = html.Div([
-                            html.P("There are no nests within 1km of you.",
-                                style = {'fontSize': 32})
-                            ])
-
-    return nest_statement
 
 @app.callback(
     Output('datatable', 'rows'),
-    [Input('intermediate_value', 'children')])
+    [Input('intermediate_value', 'children'),
+     Input('dropdown-scooters', 'value')])
 
-def create_table(model_df):
+def create_table(model_df, scooters):
     model_df = pd.read_json(model_df, orient='split')
-
+    lat = model_df['my_lat'][0]
+    lon = model_df['my_lon'][0]
+    
     if len(model_df) < 1:
         
         return('')
-    else:
-        lat = model_df['my_lat'][0]
-        lon = model_df['my_lon'][0]
-        nest_scooters = find_closest_nest(lat, lon, model_df)
-
-    
+        
+    if scooters == 'id':
+        nest_scooters = find_closest_nests(lat, lon, model_df, 'id')
         nest_scooters = pd.DataFrame(nest_scooters)
-        nest_scooters = nest_scooters.rename(columns={0: 'Distance'})
-        nest_scooters = nest_scooters.sort_values(['Distance'], ascending=True)
+        nest_scooters = nest_scooters.rename(columns={0: 'Distance (Meters)', 1: 'Battery Level'})
+        nest_scooters = nest_scooters.sort_values(['Distance (Meters)'], ascending=True)
         nest_scooters = nest_scooters.round(0)
 
         return nest_scooters.to_dict('records')
 
+    if scooters == 'nest_id':
+        nest_scooters = find_closest_nests(lat, lon, model_df, 'nest_id')
+        nest_scooters = pd.DataFrame(nest_scooters)
+        nest_scooters = nest_scooters.rename(columns={0: 'Distance (Meters)', 1: 'Battery Level'})
+        nest_scooters = nest_scooters.sort_values(['Distance (Meters)'], ascending=True)
+        nest_scooters = nest_scooters.round(0)
+
+        return nest_scooters.to_dict('records') 
+    
+    if scooters == 'all':
+        nest_scooters = find_closest_nests(lat, lon, model_df, 'all')
+        nest_scooters = pd.DataFrame(nest_scooters)
+        nest_scooters = nest_scooters.rename(columns={0: 'Distance (Meters)', 1: 'Battery Level'})
+        nest_scooters = nest_scooters.sort_values(['Distance (Meters)'], ascending=True)
+        nest_scooters = nest_scooters.round(0)
+
+        return nest_scooters.to_dict('records')
+    
 @app.callback(
-    Output('address_map', 'figure'),
-    [Input('intermediate_value', 'children'),
-     Input('dropdown-scooters', 'value')])
+        Output('address_map', 'figure'),
+        [Input('intermediate_value', 'children'),
+         Input('dropdown-scooters', 'value')])
 
 def location_map(address_df, scooters):
     address_df = pd.read_json(address_df, orient='split')
@@ -356,5 +434,10 @@ def location_map(address_df, scooters):
                                lon=address_df.loc[0, 'longitude'])
         return address_map
 
+    if scooters == 'all':
+        address_map = map_estimate(address_df, 'all', lat = address_df.loc[0, 'latitude'], 
+                               lon=address_df.loc[0, 'longitude'])
+        return address_map  
+
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server()
