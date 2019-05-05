@@ -2,7 +2,7 @@
 A full-stack machine learning application, that classifies scooters into nests in real-time based on scooter attributes and city features. It then makes new nest recommendations for the non-nest scooters which are generated via geospatial clustering. [The web-app can be found here](http://www.nestgenerator.com)
 
 
-<img src="Visualizations/ML_Pipeline.png" height="700">
+<img src="Visualizations/ML_Pipeline.png" height="400">
 
 The major bike and scooter providers (Bird, JUMP, Lime) don't have publicly accessible APIs. However, some folks have seemingly been able to reverse-engineer the Bird API used to populate the maps in their Android and iOS applications.
 
