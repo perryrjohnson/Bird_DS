@@ -2,7 +2,7 @@
 A full-stack machine learning application, that classifies scooters into nests in real-time based on scooter attributes and city features. It then makes new nest recommendations for the non-nest scooters which are generated via geospatial clustering. [The web-app can be found here](http://www.nestgenerator.com)
 
 
-<img src="Visualizations/ML_Pipeline.png" height="300">
+<img src="Visualizations/ML_Pipeline.png" height="700">
 
 The major bike and scooter providers (Bird, JUMP, Lime) don't have publicly accessible APIs. However, some folks have seemingly been able to reverse-engineer the Bird API used to populate the maps in their Android and iOS applications.
 
@@ -11,8 +11,9 @@ One interesting feature of this data is the nest_id, which indicates if the Bird
 By predicting whether a Bird is part of a nest or not, we could automate location recommendations for newly charged Birds to be released back on the streets. 
 
 I set out to ask the following questions:
-*Can real-time predictions be made to determine if a scooter is currently in a nest?*
-*For non-nest scooters, can new nest location recommendations be generated from geospatial clustering?*
+1) *Can real-time predictions be made to determine if a scooter is currently in a nest?*
+
+2) *For non-nest scooters, can new nest location recommendations be generated from geospatial clustering?*
 
 
 The Jupyter Notebook with statistical analysis and model development can be found [here](https://github.com/perryrjohnson/Bird_DS/blob/master/Visualizations/external_notebook.ipynb)
