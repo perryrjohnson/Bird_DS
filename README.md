@@ -1,7 +1,7 @@
 # A Bird's Eye View: Leveraging Machine Learning to Generate Nests
 A full-stack machine learning application, that classifies scooters into nests in real-time based on scooter attributes and city features. It then makes new nest recommendations for the non-nest scooters which are generated via geospatial clustering. [The web-app can be found here](http://www.nestgenerator.com)
 
-# Data Collection and Machine Learning Pipeline H2
+Data Collection and Machine Learning Pipeline #H2
 
 <img src="Visualizations/ML_Pipeline.png" height="400">
 
