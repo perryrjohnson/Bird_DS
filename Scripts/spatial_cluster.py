@@ -1,32 +1,41 @@
+# import libraries
 import osmnx as ox
 import numpy as np
 import pandas as pd
 from sklearn.cluster import DBSCAN
+from shapely.geometry import  MultiPoint
+from haversine import haversine
 from sklearn import metrics
-import time
 
+# read in a dataframe
 df = pd.read_csv('final_merge.csv', index_col=0)
 
-kms_per_radian = 6371.0088
+# get centroid lat, lon of a cluster
+def get_centroid(cluster):
+    centroid = (MultiPoint(cluster).centroid.x, MultiPoint(cluster).centroid.y)
+    return list(centroid)
 
-coords = df[['latitude', 'longitude']].values
+# derive clusters from reading in dataframe with scooter's coordinates  
+def cluster_algorithm(df):
+    
+    coords = df[['latitude', 'longitude']].values
 
-# eps is the physical distance from each point that forms its neighborhood
-# define epsilon as 0.025 kilometers (25 meters), converted to radians for use by haversine
-epsilon  = 0.025 /  kms_per_radian
-start_time  = time.time()
+    # eps is the physical distance from each point that forms its neighborhood
+    # points must be within 50 meters of each other and a cluster must contain at least 4 points.
+    eps_rad = 50 / 3671000
 
-db = DBSCAN(eps=epsilon, min_samples=1, algorithm='ball_tree', metric='haversine').fit(np.radians(coords))
+    db = DBSCAN(eps=eps_rad, min_samples=4, algorithm='ball_tree', metric='haversine').fit(np.radians(coords))
 
-cluster_labels = db.labels_
+    cluster_labels = db.labels_
+    
+    clusters = pd.Series([coords[cluster_labels==n] for n in range(min(cluster_labels), max(cluster_labels))])
 
-df['cluster_labels'] = cluster_labels
-
-num_clusters  = len(set(cluster_labels))
-
-# all done, print the outcome
-message = 'Clustered {:,} points down to {:,} clusters, for {:.1f}% compression in {:,.2f} seconds'
-print(message.format(len(df), num_clusters, 100*(1 - float(num_clusters) / len(df)), time.time()-start_time))
-print('Silhouette coefficient: {:0.03f}'.format(metrics.silhouette_score(coords, cluster_labels)))
-
-df.to_csv('cluster_test.csv')
+    clust_lat = []
+    clust_lon = []
+    for i in range(len(clusters)):
+        centroid_point = get_centroid(clusters[i])
+        lat, lon = centroid_point
+        clust_lat.append(lat)
+        clust_lon.append(lon)
+        
+    return clust_lat, clust_lon 
