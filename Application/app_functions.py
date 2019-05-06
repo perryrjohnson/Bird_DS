@@ -69,7 +69,7 @@ def cluster_algorithm(df):
 def cluster_address(df):
     # reverse geocode to get the address for the cluster centroid
     address = []
-    api_key='AIzaSyBZLOJfP1yw-F5T26O_nNcjXpceL6KrD3Q'
+    api_key='APIKEY'
     lat, lon = cluster_algorithm(df)
     for i in range(len(lat)):
         url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+str(lat[i])+','+str(lon[i])+'&key='+api_key
