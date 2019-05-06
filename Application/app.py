@@ -353,48 +353,61 @@ def find_bird_nests(n_clicks, value):
         df['hundred_meter'] = hundred_meter
         df['closest_scooter'] = closest_scooter
 
-      
+              
+        # Highest Battery Proximity: count the number of scooters with battery level >= 95 within a five meter distance for a given snapshot in time
+        # High Bat Proximity: count the number of scooters with battery level >= 90 within a ten meter distance for a given snapshot in time
+        # calculate the closest high battery (>= 90%) scooter proximity for each scooter in meters at a snapshot in time
+        # calculate the average distance of the 5 closest high battery (>= 90%) scooters 
         # count the number of scooters with battery level >= 95 within a five meter distance for a given snapshot in time
+        high_bat_proximity = []
+        min_dist = []
+        avg_dist = []
         highest_bat_proximity = []
-
-        for i in range(len(df)):
-            base_lat = df['latitude'][i]
-            base_lon = df['longitude'][i]
-            battery_calc = df[['battery_level', 'longitude', 'latitude']].values
-            yes = battery_calc[battery_calc[:, 0] >= 95]
-
-            hold = haversine_np(base_lon, base_lat, yes[:, 1], yes[:, 2])
-            cleaned = np.delete(hold, hold.argmin())
-    
-            five_meters = len([i for i in cleaned if i <=5])
-            highest_bat_proximity.append(five_meters)
-
-
-        df['highest_bat_proximity'] = highest_bat_proximity
-
-        # count the number of scooters with battery level < 60 within a 10 meter distance
+        high_bat_proximity = []
         low_bat_proximity = []
-
+        
         for i in range(len(df)):
             base_lat = df['latitude'][i]
             base_lon = df['longitude'][i]
             battery_calc = df[['battery_level', 'longitude', 'latitude']].values
-            yes = battery_calc[battery_calc[:, 0] < 60]
+            highest_view = battery_calc[battery_calc[:, 0] >= 95]
+            high_view = battery_calc[battery_calc[:, 0] >= 90]
+            low_view = battery_calc[battery_calc[:, 0] < 60]
             
-            hold = haversine_np(base_lon, base_lat, yes[:, 1], yes[:, 2])
-            cleaned = np.delete(hold, hold.argmin())
-        
+            highest = haversine_np(base_lon, base_lat, highest_view[:, 1], highest_view[:, 2])
+            highest_cleaned = np.delete(highest, highest.argmin())
+            five_meters = len([i for i in highest_cleaned if i <=5])
+            highest_bat_proximity.append(five_meters)
+            
+            high = haversine_np(base_lon, base_lat, high_view[:, 1], high_view[:, 2])
+            high_cleaned = np.delete(high, high.argmin())
             ten_meters = len([i for i in cleaned if i <=10])
-            low_bat_proximity.append(ten_meters)
-
-        df['low_bat_proximity'] = low_bat_proximity
+            high_bat_proximity.append(ten_meters)
+            
+            minimum = np.min(high_cleaned)
+            high_cleaned.sort()
+            top_five = np.mean(high_cleaned[0:5])            
+            min_dist.append(minimum)
+            avg_dist.append(top_five)
+    
+            lowest = haversine_np(base_lon, base_lat, low_view[:, 1], low_view[:, 2])
+            lowest_cleaned = np.delete(lowest, lowest.argmin())
+            low_ten = len([i for i in lowest_cleaned if i <=10])
+            low_bat_proximity.append(low_ten)
+    
         
+        df['avg_high_bat_dist'] = avg_dist
+        df['min_high_bat_dist'] = min_dist
+        df['high_bat_proximity'] = high_bat_proximity        
+        df['highest_bat_proximity'] = highest_bat_proximity
+        df['low_bat_proximity'] = low_bat_proximity
+                
         # create log feature for closest scooter
         df['log_scooter'] = np.log(df['closest_scooter'])
         
-        X_vars_min = ['log_scooter', 'battery_level', 'fifty_meter', 'two_meter', 
-              'ten_meter', 'twentyfive_meter', 'low_bat_proximity',
-               'highest_bat_proximity']
+        X_vars_min = ['log_scooter', 'battery_level', 'two_meter', 'five_meter', 'fifty_meter', 
+                      'ten_meter', 'hundred_meter', 'twentyfive_meter', 'low_bat_proximity', 'high_bat_proximity',
+                      'highest_bat_proximity', 'min_high_bat_dist', 'avg_high_bat_dist', 'closest_scooter']
         
         X = df[X_vars_min]
 
@@ -557,7 +570,5 @@ def location_map(address_df, scooters):
         address_map = map_estimate(address_df, 'all', lat, lon)
         return address_map 
     
-
-
 if __name__ == '__main__':
     app.run_server()
