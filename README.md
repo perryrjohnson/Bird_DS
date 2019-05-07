@@ -19,4 +19,8 @@ I set out to ask the following questions:
 
 A walk through of the statistical analysis and machine learning model development can be found [here](https://github.com/perryrjohnson/Bird_DS/blob/master/Visualizations/display_notebook.ipynb)
 
+
+
+
+
 Comments or Questions? Please email me at: perryrjohnson7@gmail.com
