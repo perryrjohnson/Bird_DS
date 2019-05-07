@@ -8,6 +8,7 @@ dask==1.1.0
 Flask==1.0.2
 Flask-Compress==1.4.0
 Flask-Cors==3.0.6
+geocodio==1.0.1
 geocoder==1.38.1
 geolocation-python==0.2.2
 google==2.0.2
