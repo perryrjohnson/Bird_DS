@@ -17,6 +17,6 @@ I set out to ask the following questions:
 2) *For non-nest scooters, can new nest location recommendations be generated from geospatial clustering?*
 
 
-The Jupyter Notebook with statistical analysis and model development can be found [here](https://github.com/perryrjohnson/Bird_DS/blob/master/Visualizations/external_notebook.ipynb)
+A walk through of the statistical analysis and machine learning model development can be found [here](https://github.com/perryrjohnson/Bird_DS/blob/master/Visualizations/display_notebook.ipynb)
 
 Comments or Questions? Please email me at: perryrjohnson7@gmail.com
