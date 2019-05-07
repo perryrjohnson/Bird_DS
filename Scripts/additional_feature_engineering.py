@@ -5,6 +5,7 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 from haversine import haversine
 
+df = pd.read_csv('data.csv', index_col=0)
 
 # Cleaning up road categories 
 df['road_type'] = df['road_type'].str.replace('_link', '')
@@ -192,10 +193,7 @@ df['min_high_bat_dist'] = [i * 1000 for i in min_dist]
 df['avg_high_bat_dist'] = [i * 1000 for i in avg_dist]
 
 
-# create log features for closest_highway, circuity_avg and closest scooter
+# create log features for closest_highway and closest scooter
 
 df['log_highway'] = np.log(df['closest_highway'])
 df['log_scooter'] = np.log(df['closest_scooter'])
-
-
-
